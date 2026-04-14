@@ -17,14 +17,14 @@ public static class PlaywrightTestPagesExtension
         await page.GotoAsync(url, new PageGotoOptions
         {
             WaitUntil = WaitUntilState.Load
-        });
+        }).NoSync();
 
         if (expectedTitle.HasContent())
             await Assertions.Expect(page)
-                            .ToHaveTitleAsync(expectedTitle);
+                            .ToHaveTitleAsync(expectedTitle).NoSync();
 
         await Assertions.Expect(readyLocatorFactory(page))
-                        .ToBeVisibleAsync();
+                        .ToBeVisibleAsync().NoSync();
     }
 
     public static string GetRouteUrl(this string baseUrl, string route)
