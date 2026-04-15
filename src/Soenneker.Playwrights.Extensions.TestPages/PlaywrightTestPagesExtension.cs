@@ -16,7 +16,7 @@ public static class PlaywrightTestPagesExtension
     {
         await page.GotoAsync(url, new PageGotoOptions
         {
-            WaitUntil = WaitUntilState.Load
+            WaitUntil = WaitUntilState.DOMContentLoaded
         }).NoSync();
 
         if (expectedTitle.HasContent())
@@ -29,19 +29,35 @@ public static class PlaywrightTestPagesExtension
 
     public static string GetRouteUrl(this string baseUrl, string route)
     {
-        return route == "/" ? baseUrl : $"{baseUrl}{route.TrimStart('/')}";
+        if (route == "/")
+            return baseUrl.TrimEnd('/');
+
+        return $"{baseUrl.TrimEnd('/')}/{route.TrimStart('/')}";
     }
 
-    public static async ValueTask OpenPage(this IPage page, string baseUrl, string route, Func<IPage, ValueTask> assertion)
+    public static async ValueTask OpenPage(this IPage page, string baseUrl, string route,
+        Func<IPage, ILocator> readyLocatorFactory, Func<IPage, ValueTask> assertion)
     {
         await page.GotoAsync(baseUrl.GetRouteUrl(route), new PageGotoOptions
-                  {
-                      WaitUntil = WaitUntilState.Load
-                  })
-                  .NoSync();
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        }).NoSync();
 
-        await assertion(page)
-            .NoSync();
+        await Assertions.Expect(readyLocatorFactory(page))
+                        .ToBeVisibleAsync()
+                        .NoSync();
+
+        await assertion(page).NoSync();
+    }
+
+    public static async ValueTask OpenPage(this IPage page, string baseUrl, string route, Func<IPage, Task> assertion)
+    {
+        await page.GotoAsync(baseUrl.GetRouteUrl(route), new PageGotoOptions
+        {
+            WaitUntil = WaitUntilState.DOMContentLoaded
+        }).NoSync();
+
+        await assertion(page).NoSync();
     }
 
     public static ILocator VisibleMenu(this IPage page)
