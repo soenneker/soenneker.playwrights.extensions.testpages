@@ -19,12 +19,12 @@ public static class PlaywrightTestPagesExtension
             WaitUntil = WaitUntilState.DOMContentLoaded
         }).NoSync();
 
+        await Assertions.Expect(readyLocatorFactory(page))
+                        .ToBeVisibleAsync().NoSync();
+
         if (expectedTitle.HasContent())
             await Assertions.Expect(page)
                             .ToHaveTitleAsync(expectedTitle).NoSync();
-
-        await Assertions.Expect(readyLocatorFactory(page))
-                        .ToBeVisibleAsync().NoSync();
     }
 
     public static string GetRouteUrl(this string baseUrl, string route)
