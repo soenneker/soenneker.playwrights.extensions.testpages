@@ -8,18 +8,18 @@ using Soenneker.Extensions.ValueTask;
 namespace Soenneker.Playwrights.Extensions.TestPages;
 
 /// <summary>
-/// Extension methods for Playwright Pages during tests
+/// Provides navigation and locator helpers for Playwright page tests.
 /// </summary>
 public static class PlaywrightTestPagesExtension
 {
     /// <summary>
-    /// Navigates to and Wait For Ready.
+    /// Navigates to a URL, waits for the ready locator to be visible, and optionally verifies the page title.
     /// </summary>
     /// <param name="page">Browser page to inspect or control.</param>
     /// <param name="url">URL of the resource to target.</param>
-    /// <param name="readyLocatorFactory">Callback used by goto and wait for ready.</param>
-    /// <param name="expectedTitle">Expected Title for the goto and wait for ready operation.</param>
-    /// <returns>A task that completes when the goto and wait for ready operation is complete.</returns>
+    /// <param name="readyLocatorFactory">Creates the locator that signals the page is ready.</param>
+    /// <param name="expectedTitle">Optional exact page title to verify.</param>
+    /// <returns>A task that completes after the page is ready and the optional title assertion succeeds.</returns>
     public static async ValueTask GotoAndWaitForReady(this IPage page, string url, Func<IPage, ILocator> readyLocatorFactory, string? expectedTitle = null)
     {
         await page.GotoAsync(url, new PageGotoOptions
@@ -36,11 +36,11 @@ public static class PlaywrightTestPagesExtension
     }
 
     /// <summary>
-    /// Gets route url.
+    /// Joins a base URL and application route without duplicating the separating slash.
     /// </summary>
     /// <param name="baseUrl">URL of the base to target.</param>
-    /// <param name="route">Route for the get route url operation.</param>
-    /// <returns>The requested text.</returns>
+    /// <param name="route">Application route to append.</param>
+    /// <returns>The combined URL.</returns>
     public static string GetRouteUrl(this string baseUrl, string route)
     {
         if (route == "/")
@@ -50,14 +50,14 @@ public static class PlaywrightTestPagesExtension
     }
 
     /// <summary>
-    /// Opens page.
+    /// Opens a route, waits for a page-specific locator to become visible, and invokes an assertion.
     /// </summary>
     /// <param name="page">Browser page to inspect or control.</param>
     /// <param name="baseUrl">URL of the base to target.</param>
     /// <param name="route">Route for the open page operation.</param>
-    /// <param name="readyLocatorFactory">Callback used by open page.</param>
-    /// <param name="assertion">Callback used by open page.</param>
-    /// <returns>A task that completes when the open page operation is complete.</returns>
+    /// <param name="readyLocatorFactory">Creates the locator that signals the page is ready.</param>
+    /// <param name="assertion">Assertion to run after the ready locator becomes visible.</param>
+    /// <returns>A task that completes after the assertion finishes.</returns>
     public static async ValueTask OpenPage(this IPage page, string baseUrl, string route,
         Func<IPage, ILocator> readyLocatorFactory, Func<IPage, ValueTask> assertion)
     {
@@ -74,13 +74,13 @@ public static class PlaywrightTestPagesExtension
     }
 
     /// <summary>
-    /// Opens page.
+    /// Opens a route and invokes an assertion after the DOM content has loaded.
     /// </summary>
     /// <param name="page">Browser page to inspect or control.</param>
     /// <param name="baseUrl">URL of the base to target.</param>
     /// <param name="route">Route for the open page operation.</param>
-    /// <param name="assertion">Callback used by open page.</param>
-    /// <returns>A task that completes when the open page operation is complete.</returns>
+    /// <param name="assertion">Assertion to run after navigation.</param>
+    /// <returns>A task that completes after the assertion finishes.</returns>
     public static async ValueTask OpenPage(this IPage page, string baseUrl, string route, Func<IPage, Task> assertion)
     {
         await page.GotoAsync(baseUrl.GetRouteUrl(route), new PageGotoOptions
@@ -92,10 +92,10 @@ public static class PlaywrightTestPagesExtension
     }
 
     /// <summary>
-    /// Returns the value produced by visible Menu.
+    /// Locates the last visible ARIA menu on the page.
     /// </summary>
     /// <param name="page">Browser page to inspect or control.</param>
-    /// <returns>The resulting locator.</returns>
+    /// <returns>A locator for the last visible element with <c>role="menu"</c>.</returns>
     public static ILocator VisibleMenu(this IPage page)
     {
         return page.Locator("[role='menu']:visible")
